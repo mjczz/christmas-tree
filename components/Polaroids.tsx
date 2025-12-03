@@ -22,8 +22,6 @@ import { TreeMode } from '../types';
  * ==================================================================================
  */
 
-const PHOTO_COUNT = 22; // How many polaroid frames to generate
-
 interface PolaroidsProps {
   mode: TreeMode;
   uploadedPhotos: string[];
@@ -177,17 +175,21 @@ const PolaroidItem: React.FC<{ data: PhotoData; mode: TreeMode; index: number }>
 };
 
 export const Polaroids: React.FC<PolaroidsProps> = ({ mode, uploadedPhotos }) => {
+  console.log('Polaroids 渲染 - uploadedPhotos:', uploadedPhotos);
+  
   const photoData = useMemo(() => {
     // Don't render any photos if none are uploaded
-    if (uploadedPhotos.length === 0) {
+    if (!uploadedPhotos || uploadedPhotos.length === 0) {
+      console.log('没有照片，返回空数组');
       return [];
     }
 
     const data: PhotoData[] = [];
-    const height = 9; // Range of height on tree
-    const maxRadius = 5.0; // Slightly outside the foliage radius (which is approx 5 at bottom)
+    const height = 9;
+    const maxRadius = 5.0;
     
     const count = uploadedPhotos.length;
+    console.log('生成照片数据，数量:', count);
 
     for (let i = 0; i < count; i++) {
       // 1. Target Position
@@ -232,8 +234,11 @@ export const Polaroids: React.FC<PolaroidsProps> = ({ mode, uploadedPhotos }) =>
         speed: 0.8 + Math.random() * 1.5 // Variable speed
       });
     }
+    console.log('最终生成的 photoData 数量:', data.length);
     return data;
   }, [uploadedPhotos]);
+
+  console.log('即将渲染的 photoData.length:', photoData.length);
 
   return (
     <group>

@@ -1,5 +1,5 @@
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Loader } from '@react-three/drei';
 import { Experience } from './components/Experience';
@@ -30,7 +30,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
           <div>
             <h2 className="text-2xl mb-2">Something went wrong</h2>
             <p className="opacity-70">A resource failed to load (likely a missing image). Check the console for details.</p>
-            <button 
+            <button
               onClick={() => this.setState({ hasError: false })}
               className="mt-4 px-4 py-2 border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
             >
@@ -50,16 +50,39 @@ export default function App() {
   const [handPosition, setHandPosition] = useState<{ x: number; y: number; detected: boolean }>({ x: 0.5, y: 0.5, detected: false });
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
 
+  // 动态检测照片数量
+  useEffect(() => {
+    const detectPhotos = async () => {
+      const photos: string[] = [];
+
+      for (let i = 1; i <= 10; i++) {
+        try {
+          const response = await fetch(`/photos/${i}.jpg`, { method: 'HEAD' });
+          if (response.ok) {
+            photos.push(`/photos/${i}.jpg`);
+          } else {
+            // 遇到第一个不存在的就停止
+            break;
+          }
+        } catch {
+          // 遇到错误就停止
+          break;
+        }
+      }
+
+      console.log('检测到的照片数量:', photos.length, photos);
+      setUploadedPhotos(photos);
+    };
+
+    detectPhotos();
+  }, []);
+
   const toggleMode = () => {
     setMode((prev) => (prev === TreeMode.FORMED ? TreeMode.CHAOS : TreeMode.FORMED));
   };
 
   const handleHandPosition = (x: number, y: number, detected: boolean) => {
     setHandPosition({ x, y, detected });
-  };
-
-  const handlePhotosUpload = (photos: string[]) => {
-    setUploadedPhotos(photos);
   };
 
   return (
@@ -72,20 +95,22 @@ export default function App() {
           shadows
         >
           <Suspense fallback={null}>
-            <Experience mode={mode} handPosition={handPosition} uploadedPhotos={uploadedPhotos} />
+            {uploadedPhotos.length > 0 && (
+              <Experience mode={mode} handPosition={handPosition} uploadedPhotos={uploadedPhotos} />
+            )}
           </Suspense>
         </Canvas>
       </ErrorBoundary>
-      
-      <Loader 
-        containerStyles={{ background: '#000' }} 
+
+      <Loader
+        containerStyles={{ background: '#000' }}
         innerStyles={{ width: '300px', height: '10px', background: '#333' }}
         barStyles={{ background: '#D4AF37', height: '10px' }}
         dataStyles={{ color: '#D4AF37', fontFamily: 'Cinzel' }}
       />
-      
-      <UIOverlay mode={mode} onToggle={toggleMode} onPhotosUpload={handlePhotosUpload} hasPhotos={uploadedPhotos.length > 0} />
-      
+
+      <UIOverlay mode={mode} onToggle={toggleMode} hasPhotos={true} />
+
       {/* Gesture Control Module */}
       <GestureController currentMode={mode} onModeChange={setMode} onHandPosition={handleHandPosition} />
     </div>
