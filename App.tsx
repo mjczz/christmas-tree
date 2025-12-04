@@ -55,7 +55,7 @@ export default function App() {
     const detectPhotos = async () => {
       const photos: string[] = [];
 
-      for (let i = 1; i <= 10; i++) {
+      for (let i = 1; i <= 27; i++) {
         try {
           const response = await fetch(`/photos/${i}.jpg`, { method: 'HEAD' });
           if (response.ok) {
